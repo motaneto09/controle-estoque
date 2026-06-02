@@ -21,6 +21,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
 
     $id = (int) $_POST['id'];
 
+    if ($id <= 0) {
+    exit("ID inválido");
+}
+
+
     $sql = "DELETE FROM ativos WHERE id = ?";
     $stmt = $conexao->prepare($sql);
     $stmt->bind_param("i", $id);
