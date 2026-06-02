@@ -711,7 +711,8 @@ statusSelect.addEventListener('change', atualizarTela);
 
 carregarTipos();
 atualizarTela();
-<script>
+
+</script>
 
 <?php if ($modo_visualizar): ?>
 
