@@ -350,6 +350,22 @@ body {
     font-size: 14px;
 }
 
+.btn-visualizar {
+    display: inline-block;
+    padding: 6px 12px;
+    margin-right: 5px;
+    background: #17a2b8;
+    color: #fff !important;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.btn-visualizar:hover {
+    background: #138496;
+}
+
 .btn-editar:hover {
     background: #0056b3;
 }

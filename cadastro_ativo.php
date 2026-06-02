@@ -528,7 +528,7 @@ $stmt->bind_param(
             <?php endif; ?>
         </form>
 
-        <a href="pages/dashboard.php" class="btn-voltar">Voltar</a>
+        <a href="/controle-estoque/consulta_ativos.php" class="btn-voltar">Voltar</a>
     </div>
 </div>
 

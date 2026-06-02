@@ -232,6 +232,3 @@ toggle.addEventListener('click', () => {
 
 </body>
 </html>
-
-</body>
-</html>
