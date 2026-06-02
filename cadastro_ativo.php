@@ -7,9 +7,14 @@ include 'includes/log.php';
 $perfil = $_SESSION['usuario_perfil'] ?? '';
 $pode_editar = in_array($perfil, ['Administrador', 'AdmVendas'], true);
 $modo_visualizar = !$pode_editar || (($_GET['modo'] ?? '') === 'visualizar');
+
 $modo_edicao = false;
 $mensagem = '';
 $ativo = [];
+
+$filtro_service_tag = $_GET['service_tag'] ?? '';
+$filtro_descricao = $_GET['descricao'] ?? '';
+$filtro_categoria = $_GET['categoria'] ?? '';
 
 $categorias = [
     'Notebook',
@@ -132,7 +137,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $dados = dadosPost();
 
-if ($dados['categoria'] === 'Memoria') {
+        $filtro_service_tag = $_POST['filtro_service_tag'] ?? '';
+        $filtro_descricao = $_POST['filtro_descricao'] ?? '';
+        $filtro_categoria = $_POST['filtro_categoria'] ?? '';
+
+if (
+    $dados['categoria'] === 'Disco' ||
+    $dados['categoria'] === 'Memoria'
+) {
 
     $dados['status'] = 'Estoque';
     $dados['cliente'] = '';
@@ -230,11 +242,23 @@ $stmt->bind_param(
 );
 
             if ($stmt->execute()) {
-                $mensagem = 'Ativo atualizado com sucesso!';
-                registrarLog($conexao, 'Editou ativo', $dados['id'], 'Service Tag: ' . $dados['service_tag']);
-                $ativo = $dados;
-                $modo_edicao = true;
-            } else {
+
+    registrarLog(
+        $conexao,
+        'Editou ativo',
+        $dados['id'],
+        'Service Tag: ' . $dados['service_tag']
+    );
+
+    header(
+    'Location: consulta_ativos.php?msg=atualizado'
+    . '&service_tag=' . urlencode($filtro_service_tag)
+    . '&descricao=' . urlencode($filtro_descricao)
+    . '&categoria=' . urlencode($filtro_categoria)
+);
+exit;
+}
+            else {
                 $mensagem = 'Erro ao atualizar ativo: ' . $stmt->error;
                 $ativo = $dados;
             }
@@ -282,10 +306,23 @@ $stmt->bind_param(
 );
 
             if ($stmt->execute()) {
-                $mensagem = 'Ativo cadastrado com sucesso!';
-                registrarLog($conexao, 'Cadastrou ativo', $stmt->insert_id, 'Service Tag: ' . $dados['service_tag']);
-                $ativo = [];
-            } else {
+
+    registrarLog(
+        $conexao,
+        'Cadastrou ativo',
+        $stmt->insert_id,
+        'Service Tag: ' . $dados['service_tag']
+    );
+
+    header(
+    'Location: consulta_ativos.php?msg=cadastrado'
+    . '&service_tag=' . urlencode($filtro_service_tag)
+    . '&descricao=' . urlencode($filtro_descricao)
+    . '&categoria=' . urlencode($filtro_categoria)
+);
+exit;
+}
+            else {
                 $mensagem = 'Erro ao cadastrar ativo: ' . $stmt->error;
                 $ativo = $dados;
             }
@@ -305,9 +342,33 @@ $stmt->bind_param(
 <div class="login-container">
     <div class="login-box cadastro-box">
 
-        <h1><?= $modo_edicao ? 'Editar Ativo' : 'Cadastro de Ativos'; ?></h1>
+        <h1>
+<?php
+if ($modo_visualizar) {
+    echo 'Visualizar Ativo';
+} elseif ($modo_edicao) {
+    echo 'Editar Ativo';
+} else {
+    echo 'Cadastro de Ativos';
+}
+?>
+</h1>
 
         <form method="POST">
+
+    <input type="hidden"
+           name="filtro_service_tag"
+           value="<?= e($filtro_service_tag); ?>">
+
+    <input type="hidden"
+           name="filtro_descricao"
+           value="<?= e($filtro_descricao); ?>">
+
+    <input type="hidden"
+           name="filtro_categoria"
+           value="<?= e($filtro_categoria); ?>">
+
+
             <input type="hidden" name="id" value="<?= e($ativo['id'] ?? ''); ?>">
 
             <div class="input-group">
@@ -528,7 +589,15 @@ $stmt->bind_param(
             <?php endif; ?>
         </form>
 
-        <a href="/controle-estoque/consulta_ativos.php" class="btn-voltar">Voltar</a>
+        <?php if ($modo_visualizar): ?>
+    <a href="/controle-estoque/consulta_ativos.php" class="btn-voltar">
+        Fechar
+    </a>
+<?php else: ?>
+    <a href="/controle-estoque/consulta_ativos.php" class="btn-voltar">
+        Voltar
+    </a>
+<?php endif; ?>
     </div>
 </div>
 
@@ -642,6 +711,29 @@ statusSelect.addEventListener('change', atualizarTela);
 
 carregarTipos();
 atualizarTela();
+<script>
+
+<?php if ($modo_visualizar): ?>
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    document.querySelectorAll(
+        'input, select, textarea, button'
+    ).forEach(function(campo) {
+
+        if (
+            campo.type !== 'hidden' &&
+            !campo.classList.contains('btn-voltar')
+        ) {
+            campo.setAttribute('disabled', 'disabled');
+        }
+
+    });
+
+});
+
+<?php endif; ?>
+
 </script>
 
 </body>

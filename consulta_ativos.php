@@ -102,6 +102,18 @@ $resultado = $stmt->get_result();
 
     <main class="dashboard-content">
 
+    <?php if (isset($_GET['msg']) && $_GET['msg'] === 'cadastrado'): ?>
+    <div class="alert alert-success">
+        Ativo cadastrado com sucesso!
+    </div>
+<?php endif; ?>
+
+<?php if (isset($_GET['msg']) && $_GET['msg'] === 'atualizado'): ?>
+    <div class="alert alert-success">
+        Ativo atualizado com sucesso!
+    </div>
+<?php endif; ?>
+
         <h1>Consulta de Ativos</h1>
 
         <form method="GET" class="filtros-consulta">
@@ -166,26 +178,27 @@ $resultado = $stmt->get_result();
                             <td><?= htmlspecialchars($ativo['status']); ?></td>
                             <?php if ($pode_visualizar): ?>
 
-                                <td>
+<td>
 
-                                    <a href="cadastro_ativo.php?id=<?= (int) $ativo['id']; ?>&modo=visualizar"
+    <a href="cadastro_ativo.php?id=<?= (int)$ativo['id']; ?>&modo=visualizar&service_tag=<?= urlencode($filtro_service_tag); ?>&descricao=<?= urlencode($filtro_descricao); ?>&categoria=<?= urlencode($filtro_categoria); ?>"
    class="btn-visualizar">
     Visualizar
 </a>
 
-<?php if ($pode_editar): ?>
+    <?php if ($pode_editar): ?>
 
-    <a href="cadastro_ativo.php?id=<?= (int) $ativo['id']; ?>"
-       class="btn-editar">
-        Editar
-    </a>
+        <a href="cadastro_ativo.php?id=<?= (int)$ativo['id']; ?>&service_tag=<?= urlencode($filtro_service_tag); ?>&descricao=<?= urlencode($filtro_descricao); ?>&categoria=<?= urlencode($filtro_categoria); ?>"
+   class="btn-editar">
+    Editar
+</a>
+
+    <?php endif; ?>
+
+</td>
 
 <?php endif; ?>
 
-    </td>
-
-<?php endif; ?>
-                        </tr>
+                            </tr>
 
                     <?php endwhile; ?>
 
@@ -229,6 +242,9 @@ toggle.addEventListener('click', () => {
 });
 
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
