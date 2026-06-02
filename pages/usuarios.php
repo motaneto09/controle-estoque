@@ -21,11 +21,39 @@ if (isset($_GET['excluir']) && is_numeric($_GET['excluir'])) {
 
     $idExcluir = (int) $_GET['excluir'];
 
-    if ($idExcluir == $usuarioLogadoId) {
+    // Buscar dados do usuário que será excluído
+$sqlCheck = "SELECT is_root FROM usuarios WHERE id = ?";
+$stmtCheck = $conexao->prepare($sqlCheck);
+$stmtCheck->bind_param("i", $idExcluir);
+$stmtCheck->execute();
+$resultadoCheck = $stmtCheck->get_result();
+$usuarioExcluir = $resultadoCheck->fetch_assoc();
 
-        $mensagem = "Você não pode excluir seu próprio usuário.";
+// Buscar dados do usuário logado
+$sqlLogado = "SELECT is_root FROM usuarios WHERE id = ?";
+$stmtLogado = $conexao->prepare($sqlLogado);
+$stmtLogado->bind_param("i", $usuarioLogadoId);
+$stmtLogado->execute();
+$resultadoLogado = $stmtLogado->get_result();
+$usuarioLogado = $resultadoLogado->fetch_assoc();
 
-    } else {
+// 🚫 Não excluir a si mesmo
+if ($idExcluir == $usuarioLogadoId) {
+
+    $mensagem = "Você não pode excluir seu próprio usuário.";
+
+// 🚫 Não excluir ROOT
+} elseif ($usuarioExcluir['is_root'] == 1) {
+
+    $mensagem = "Usuário ROOT não pode ser excluído!";
+
+// 🚫 Só ROOT pode excluir usuários
+} elseif ($usuarioLogado['is_root'] != 1) {
+
+    $mensagem = "Apenas o ROOT pode excluir usuários.";
+
+} else {
+
 
         $sqlExcluir = "DELETE FROM usuarios WHERE id = ?";
         $stmtExcluir = $conexao->prepare($sqlExcluir);
@@ -219,10 +247,10 @@ if (isset($_GET['msg'])) {
     }
 }
 
-$sqlUsuarios = "SELECT id, nome, email, perfil 
+$sqlUsuarios = "SELECT id, nome, email, perfil
                 FROM usuarios 
+                WHERE is_root = 0
                 ORDER BY id DESC";
-
 $resultadoUsuarios = $conexao->query($sqlUsuarios);
 
 ?>
