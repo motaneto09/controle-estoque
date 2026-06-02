@@ -638,3 +638,16 @@ body {
     min-width: auto !important;
     margin: 0 !important;
 }
+
+.btn-visualizar {
+    background: #6c757d;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    margin-right: 5px;
+}
+
+.btn-editar {
+    margin-left: 5px;
+}

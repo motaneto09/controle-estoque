@@ -168,21 +168,19 @@ $resultado = $stmt->get_result();
 
                                 <td>
 
-                                    <?php if ($pode_editar): ?>
+                                    <a href="cadastro_ativo.php?id=<?= (int) $ativo['id']; ?>&modo=visualizar"
+   class="btn-visualizar">
+    Visualizar
+</a>
 
-                                        <a href="cadastro_ativo.php?id=<?= (int) $ativo['id']; ?>"
-                                        class="btn-editar">
-                                            Editar
-                                        </a>
+<?php if ($pode_editar): ?>
 
-                                    <?php else: ?>
+    <a href="cadastro_ativo.php?id=<?= (int) $ativo['id']; ?>"
+       class="btn-editar">
+        Editar
+    </a>
 
-                                        <a href="cadastro_ativo.php?id=<?= (int) $ativo['id']; ?>&modo=visualizar"
-                                        class="btn-editar">
-                                            Visualizar
-                                        </a>
-
-                            <?php endif; ?>
+<?php endif; ?>
 
     </td>
 
@@ -208,6 +206,32 @@ $resultado = $stmt->get_result();
     </main>
 
 </div>
+
+<script>
+
+const toggle = document.getElementById('sidebarToggle');
+const sidebar = document.querySelector('.sidebar');
+
+if(localStorage.getItem('sidebar') === 'collapsed'){
+    sidebar.classList.add('sidebar-collapsed');
+}
+
+toggle.addEventListener('click', () => {
+
+    sidebar.classList.toggle('sidebar-collapsed');
+
+    if(sidebar.classList.contains('sidebar-collapsed')){
+        localStorage.setItem('sidebar', 'collapsed');
+    } else {
+        localStorage.setItem('sidebar', 'expanded');
+    }
+
+});
+
+</script>
+
+</body>
+</html>
 
 </body>
 </html>
