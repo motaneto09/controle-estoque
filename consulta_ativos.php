@@ -22,7 +22,9 @@ $categorias = [
     'Infraestrutura',
     'Network',
     'Armazenamento',
-    'Impressora'
+    'Impressora',
+    'Disco',
+    'Memoria'
 ];
 
 $sql = "SELECT * FROM ativos WHERE 1=1";
@@ -139,6 +141,7 @@ $resultado = $stmt->get_result();
                 <tr>
                     <th>Categoria</th>
                     <th>Descrição</th>
+                    <th>Quantidade</th>
                     <th>Service Tag</th>
                     <th>Status</th>
 
@@ -158,9 +161,9 @@ $resultado = $stmt->get_result();
                         <tr>
                             <td><?= htmlspecialchars($ativo['categoria']); ?></td>
                             <td><?= htmlspecialchars($ativo['descricao']); ?></td>
+                            <td><?= (int)($ativo['quantidade'] ?? 1); ?></td>
                             <td><?= htmlspecialchars($ativo['service_tag']); ?></td>
                             <td><?= htmlspecialchars($ativo['status']); ?></td>
-
                             <?php if ($pode_visualizar): ?>
 
                                 <td>
@@ -191,7 +194,7 @@ $resultado = $stmt->get_result();
                 <?php else: ?>
 
                     <tr>
-                        <td colspan="<?= $pode_editar ? '5' : '4'; ?>">
+                        <td colspan="<?= $pode_editar ? '6' : '5'; ?>">
                             Nenhum ativo encontrado.
                         </td>
                     </tr>
