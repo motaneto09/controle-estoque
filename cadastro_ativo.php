@@ -714,6 +714,8 @@ atualizarTela();
 
 </script>
 
+<script>
+
 <?php if ($modo_visualizar): ?>
 
 document.addEventListener('DOMContentLoaded', function() {
