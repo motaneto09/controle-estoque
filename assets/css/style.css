@@ -667,3 +667,9 @@ body {
 .btn-editar {
     margin-left: 5px;
 }
+
+.btn-small {
+    width: auto !important;
+    padding: 8px 15px;
+    display: inline-block;
+}

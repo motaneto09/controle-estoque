@@ -3,6 +3,10 @@
 include '../includes/auth.php';
 include '../includes/conexao.php';
 
+$data_inicio = $_GET['data_inicio'] ?? '';
+$data_fim = $_GET['data_fim'] ?? '';
+    
+
 $perfil = $_SESSION['usuario_perfil'] ?? '';
 
 if ($perfil !== 'Administrador') {
@@ -12,7 +16,13 @@ if ($perfil !== 'Administrador') {
 
 $sql = "SELECT *
         FROM logs
-        ORDER BY data_hora DESC";
+        WHERE 1=1";
+
+if ($data_inicio && $data_fim) {
+    $sql .= " AND DATE(data_hora) BETWEEN '$data_inicio' AND '$data_fim'";
+}
+
+$sql .= " ORDER BY data_hora DESC LIMIT 30";
 
 $resultado = $conexao->query($sql);
 
@@ -36,6 +46,29 @@ $resultado = $conexao->query($sql);
     <main class="dashboard-content">
 
         <h1>Logs do Sistema</h1>
+
+        <form method="GET" style="margin-bottom:15px; display:flex; gap:10px; align-items:center;">
+
+
+    
+    <label>De:</label>
+    <input type="date" name="data_inicio" value="<?= htmlspecialchars($data_inicio); ?>">
+    
+    <label>Até:</label>
+    <input type="date" name="data_fim" value="<?= htmlspecialchars($data_fim); ?>">
+
+    <button type="submit">Filtrar</button>
+
+    <button type="button"
+        class="btn-login btn-small"
+        onclick="exportarLogs()">
+    Exportar
+    </button>
+
+
+
+</form>
+
 
         <table class="tabela-ativos">
 
@@ -126,6 +159,21 @@ toggle.addEventListener('click', () => {
 });
 
 </script>
+
+<script>
+function exportarLogs() {
+    const dataInicio = document.querySelector('[name="data_inicio"]').value;
+    const dataFim = document.querySelector('[name="data_fim"]').value;
+
+    let url = 'exportar_logs.php?data_inicio=' 
+        + encodeURIComponent(dataInicio) 
+        + '&data_fim=' 
+        + encodeURIComponent(dataFim);
+
+    window.location.href = url;
+}
+</script>
+
 
 </body>
 </html>
