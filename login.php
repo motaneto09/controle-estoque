@@ -85,6 +85,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
            
            <br>
            © 2026 Desenvolvido por deoclecio_mota@iland.com.br
+                <br> Todos os direitos reservados
         </div>
 
         <?php

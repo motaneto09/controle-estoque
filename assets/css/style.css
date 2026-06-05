@@ -7,8 +7,8 @@ body {
     padding: 0;
     font-family: Arial, Helvetica, sans-serif;
     background:
-        linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)),
-        url('https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1600&auto=format&fit=crop');
+        linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)),
+        url('../img/bg-login.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -196,7 +196,9 @@ body {
 .input-group label {
     display: block;
     margin-bottom: 5px;
-    color: #555;
+    color: #ffffff;
+    font-weight: 600;
+    text-shadow: 1px 1px 3px rgba(0,0,0,.4);
 }
 
 .input-group input,
@@ -340,34 +342,32 @@ body {
     background: #1f2937;
 }
 
-.btn-editar {
-    display: inline-block;
-    padding: 8px 14px;
-    background: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
 .btn-visualizar {
-    display: inline-block;
+    background: #374151;
+    color: #fff;
     padding: 6px 12px;
-    margin-right: 5px;
-    background: #17a2b8;
-    color: #fff !important;
-    text-decoration: none;
     border-radius: 4px;
-    font-size: 14px;
-    font-weight: 500;
+    text-decoration: none;
+    margin-right: 5px;
 }
 
 .btn-visualizar:hover {
-    background: #138496;
+    background: #1f2937;
+}
+
+.btn-editar {
+    display: inline-block;
+    padding: 8px 14px;
+    background: #e53935;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-left: 5px;
 }
 
 .btn-editar:hover {
-    background: #0056b3;
+    background: #c62828;
 }
 
 .btn-excluir {
@@ -672,4 +672,32 @@ body {
     width: auto !important;
     padding: 8px 15px;
     display: inline-block;
+}
+
+.welcome-box h1 {
+    color: #ffffff;
+}
+
+.welcome-box p {
+    color: #e5e7eb;
+}
+
+.dashboard-content > h1,
+.page-header h1,
+.welcome-box h1 {
+    color: #ffffff;
+    text-shadow: 2px 2px 6px rgba(0,0,0,.5);
+}
+
+.page-header p,
+.welcome-box p {
+    color: #e5e7eb;
+    text-shadow: 1px 1px 4px rgba(0,0,0,.4);
+}
+
+.stat-card,
+.categoria-card,
+.pendencia-card {
+    color: inherit;
+    text-decoration: none;
 }

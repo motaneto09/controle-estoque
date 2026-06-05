@@ -78,7 +78,10 @@ $sem_categoria = $conexao->query("
 
     <main class="dashboard-content">
 
+    <div class="welcome-box">
     <h1>Bem-vindo, <?= htmlspecialchars($nome); ?></h1>
+    <p>Gerencie os ativos e acompanhe o status do estoque.</p>
+    </div>
 
     
     <div class="stats-grid">
