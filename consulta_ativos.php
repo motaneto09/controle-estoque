@@ -141,7 +141,8 @@ $resultado = $stmt->get_result();
 
             </select>
 
-            <button type="submit">Buscar</button>
+            <button type="submit" class="btn-primary">Buscar</button>
+
 
             <a href="consulta_ativos.php" class="btn-limpar">Limpar</a>
 

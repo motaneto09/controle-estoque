@@ -180,7 +180,11 @@ if ($resultadoClientes) {
             </button>
         </form>
 
-        <a href="pages/dashboard.php" class="btn-voltar">Voltar</a>
+        <button type="button" class="btn-voltar"
+            onclick="window.location.href='pages/dashboard.php'">
+            Voltar
+        </button>
+
 
         <?php if (!empty($clientes)): ?>
             <hr>

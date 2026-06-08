@@ -342,7 +342,10 @@ $resultadoUsuarios = $conexao->query($sqlUsuarios);
             </button>
 
             <?php if ($modo_edicao): ?>
-                <a href="usuarios.php" class="btn-voltar">Cancelar edição</a>
+                <button type="button" class="btn-voltar"
+    onclick="window.location.href='usuarios.php'">
+    Cancelar edição
+</button>
             <?php endif; ?>
 
         </form>

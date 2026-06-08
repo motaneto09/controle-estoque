@@ -2,18 +2,28 @@
    BASE
 ========================= */
 
+:root {
+    --cor-primaria: #e53935;
+    --cor-primaria-dark: #c62828;
+    --cor-secundaria: #0d6efd;
+    --cor-texto: #111827;
+    --cor-fundo-card: rgba(255,255,255,0.95);
+}
+
 body {
     margin: 0;
     padding: 0;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Segoe UI', Arial, sans-serif;
+
     background:
-        linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)),
+        linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.75)),
         url('../img/bg-login.png');
+
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
-    min-height: 100vh;
+    background-attachment: fixed;
 }
+
 
 /* =========================
    LOGIN
@@ -305,84 +315,59 @@ body {
    BOTÕES
 ========================= */
 
-.btn {
-    display: inline-block;
-    padding: 12px 20px;
-    background: #0d6efd;
-    color: #fff;
-    text-decoration: none;
+/* =========================
+   BOTÕES PADRÃO  
+========================= */
+
+button {
+    border: none;
+    cursor: pointer;
     border-radius: 8px;
-    margin-right: 10px;
-    font-weight: bold;
-    transition: 0.3s;
+    font-family: inherit;
 }
 
-.btn:hover {
+/* BOTÃO PRINCIPAL (vermelho) */
+.btn-login {
+    background: var(--cor-primaria);
+    color: white;
+    padding: 12px;
+    width: 100%;
+}
+
+.btn-login:hover {
+    background: var(--cor-primaria-dark);
+}
+
+/* BOTÃO SECUNDÁRIO (azul) */
+.btn-primary {
+    background: var(--cor-secundaria);
+    color: white;
+    padding: 10px 18px;
+}
+
+.btn-primary:hover {
     background: #0b5ed7;
 }
 
-.btn-voltar,
-.btn-limpar {
-    display: inline-block;
-    padding: 12px 20px;
+/* BOTÃO VOLTAR */
+.btn-voltar {
     background: #374151;
     color: white;
-    text-decoration: none;
-    border-radius: 6px;
+    padding: 10px 18px;
 }
 
-.btn-voltar {
-    display: block;
-    text-align: center;
-    margin-top: 15px;
-}
-
-.btn-voltar:hover,
-.btn-limpar:hover {
-    background: #1f2937;
-}
-
-.btn-visualizar {
-    background: #374151;
-    color: #fff;
-    padding: 6px 12px;
-    border-radius: 4px;
-    text-decoration: none;
-    margin-right: 5px;
-}
-
-.btn-visualizar:hover {
-    background: #1f2937;
-}
-
+/* BOTÃO EDITAR */
 .btn-editar {
-    display: inline-block;
-    padding: 8px 14px;
-    background: #e53935;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 5px;
-    font-size: 14px;
-    margin-left: 5px;
+    background: var(--cor-primaria);
+    color: white;
+    padding: 7px 12px;
 }
 
-.btn-editar:hover {
-    background: #c62828;
-}
-
+/* BOTÃO EXCLUIR */
 .btn-excluir {
     background: #dc3545;
-    color: #fff;
+    color: white;
     padding: 7px 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    text-decoration: none;
-    font-size: 14px;
-}
-
-.btn-excluir:hover {
-    background: #b02a37;
 }
 
 /* =========================
@@ -707,4 +692,21 @@ body {
     text-shadow: 2px 2px 6px rgba(0,0,0,.5);
     margin-bottom: 20px;
 }
+
+/* =========================
+   CORRIGE LABEL BRANCO
+========================= */
+
+.cadastro-box form,
+.form-padrao {
+    background: var(--cor-fundo-card);
+    padding: 25px;
+    border-radius: 12px;
+}
+
+.input-group label {
+    color: var(--cor-texto) !important;
+    font-weight: 600;
+}
+
 

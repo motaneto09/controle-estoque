@@ -594,9 +594,11 @@ if ($modo_visualizar) {
         Fechar
     </a>
 <?php else: ?>
-    <a href="/controle-estoque/consulta_ativos.php" class="btn-voltar">
-        Voltar
-    </a>
+   <button type="button" class="btn-voltar"
+    onclick="window.location.href='/controle-estoque/consulta_ativos.php'">
+    Voltar
+    </button>
+    
 <?php endif; ?>
     </div>
 </div>
