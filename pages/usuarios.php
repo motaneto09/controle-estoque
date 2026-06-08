@@ -347,7 +347,7 @@ $resultadoUsuarios = $conexao->query($sqlUsuarios);
 
         </form>
 
-        <h2>Usuários Cadastrados</h2>
+        <h2 class="section-title">Usuários Cadastrados</h2>
 
         <table class="tabela-ativos">
 
