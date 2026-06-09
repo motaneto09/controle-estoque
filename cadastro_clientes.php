@@ -211,7 +211,10 @@ if ($resultadoClientes) {
                             <td><?= e($item['telefone'] ?? ''); ?></td>
                             <td><?= e($item['email'] ?? ''); ?></td>
                             <td>
-                                <a href="cadastro_clientes.php?id=<?= e($item['id']); ?>">Editar</a>
+                                <button type="button" class="btn-editar"
+    onclick="window.location.href='cadastro_clientes.php?id=<?= e($item['id']); ?>'">
+    Editar
+</button>
                             </td>
                         </tr>
                     <?php endforeach; ?>

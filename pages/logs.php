@@ -51,19 +51,24 @@ $resultado = $conexao->query($sql);
 
 
     
+    <div class="filtros-logs">
+
     <label>De:</label>
     <input type="date" name="data_inicio" value="<?= htmlspecialchars($data_inicio); ?>">
-    
+
     <label>Até:</label>
     <input type="date" name="data_fim" value="<?= htmlspecialchars($data_fim); ?>">
 
-    <button type="submit">Filtrar</button>
-
-    <button type="button"
-        class="btn-login btn-small"
-        onclick="exportarLogs()">
-    Exportar
+    <button type="submit" class="btn-primary">
+        Filtrar
     </button>
+
+    <button type="button" class="btn-login btn-small"
+        onclick="exportarLogs()">
+        Exportar
+    </button>
+
+</div>
 
 
 

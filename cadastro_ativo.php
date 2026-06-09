@@ -590,9 +590,11 @@ if ($modo_visualizar) {
         </form>
 
         <?php if ($modo_visualizar): ?>
-    <a href="/controle-estoque/consulta_ativos.php" class="btn-voltar">
-        Fechar
-    </a>
+    <button type="button" class="btn-voltar"
+    onclick="window.location.href='/controle-estoque/consulta_ativos.php'">
+    Fechar
+</button>
+
 <?php else: ?>
    <button type="button" class="btn-voltar"
     onclick="window.location.href='/controle-estoque/consulta_ativos.php'">

@@ -144,7 +144,10 @@ $resultado = $stmt->get_result();
             <button type="submit" class="btn-primary">Buscar</button>
 
 
-            <a href="consulta_ativos.php" class="btn-limpar">Limpar</a>
+            <button type="button" class="btn-voltar"
+    onclick="window.location.href='consulta_ativos.php'">
+    Limpar
+</button>
 
         </form>
 
@@ -181,17 +184,19 @@ $resultado = $stmt->get_result();
 
 <td>
 
-    <a href="cadastro_ativo.php?id=<?= (int)$ativo['id']; ?>&modo=visualizar&service_tag=<?= urlencode($filtro_service_tag); ?>&descricao=<?= urlencode($filtro_descricao); ?>&categoria=<?= urlencode($filtro_categoria); ?>"
-   class="btn-visualizar">
+    <button type="button" class="btn-visualizar"
+    onclick="window.location.href='cadastro_ativo.php?id=<?= (int)$ativo['id']; ?>&modo=visualizar'">
     Visualizar
-</a>
+</button>
+
 
     <?php if ($pode_editar): ?>
 
-        <a href="cadastro_ativo.php?id=<?= (int)$ativo['id']; ?>&service_tag=<?= urlencode($filtro_service_tag); ?>&descricao=<?= urlencode($filtro_descricao); ?>&categoria=<?= urlencode($filtro_categoria); ?>"
-   class="btn-editar">
+        <button type="button" class="btn-editar"
+    onclick="window.location.href='cadastro_ativo.php?id=<?= (int)$ativo['id']; ?>'">
     Editar
-</a>
+</button>
+
 
     <?php endif; ?>
 

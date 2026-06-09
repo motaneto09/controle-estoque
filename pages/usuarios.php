@@ -375,18 +375,19 @@ $resultadoUsuarios = $conexao->query($sqlUsuarios);
                             <td><?= htmlspecialchars($usuario['perfil']); ?></td>
 
                             <td>
-                                <a href="usuarios.php?editar=<?= (int) $usuario['id']; ?>"
-                                   class="btn-editar">
-                                    Editar
-                                </a>
+                                <button type="button" class="btn-editar"
+    onclick="window.location.href='usuarios.php?editar=<?= (int)$usuario['id']; ?>'">
+    Editar
+</button>
+
 
                                 <?php if ((int) $usuario['id'] !== (int) $usuarioLogadoId): ?>
 
-                                    <a href="usuarios.php?excluir=<?= (int) $usuario['id']; ?>"
-                                       class="btn-excluir"
-                                       onclick="return confirm('Tem certeza que deseja excluir este usuário?');">
-                                        Excluir
-                                    </a>
+                                    <button type="button" class="btn-excluir"
+    onclick="if(confirm('Tem certeza que deseja excluir este usuário?')) 
+        window.location.href='usuarios.php?excluir=<?= (int)$usuario['id']; ?>'">
+    Excluir
+</button>
 
                                 <?php endif; ?>
                             </td>
