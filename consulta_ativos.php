@@ -4,6 +4,23 @@ session_start();
 
 include 'includes/conexao.php';
 
+$mensagem = '';
+
+if (isset($_GET['msg'])) {
+
+    if ($_GET['msg'] === 'cadastrado') {
+        $mensagem = "Ativo cadastrado com sucesso!";
+    }
+
+    if ($_GET['msg'] === 'atualizado') {
+        $mensagem = "Ativo editado com sucesso!";
+    }
+
+    if ($_GET['msg'] === 'excluido') {
+        $mensagem = "Ativo excluído com sucesso!";
+    }
+}
+
 $perfil = $_SESSION['usuario_perfil'] ?? '';
 
 $filtro_service_tag = trim($_GET['service_tag'] ?? '');
@@ -115,6 +132,12 @@ $resultado = $stmt->get_result();
 <?php endif; ?>
 
         <h1>Consulta de Ativos</h1>
+
+        <?php if (!empty($mensagem)): ?>
+    <div class="mensagem-sucesso">
+        <?= htmlspecialchars($mensagem); ?>
+    </div>
+<?php endif; ?>
 
         <form method="GET" class="filtros-consulta">
 
@@ -249,8 +272,17 @@ toggle.addEventListener('click', () => {
 
 </script>
 
-</body>
-</html>
+<script>
+    setTimeout(function () {
+        const mensagem = document.querySelector('.mensagem-sucesso');
+        if (mensagem) {
+            mensagem.style.transition = "opacity 0.5s ease";
+            mensagem.style.opacity = 0;
+
+            setTimeout(() => mensagem.remove(), 500);
+        }
+    }, 3000); // 3 segundos
+</script>
 
 </body>
 </html>
