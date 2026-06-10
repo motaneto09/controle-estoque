@@ -13,6 +13,7 @@ if (!$pode_acessar) {
 }
 
 $mensagem = '';
+$tipo_mensagem = 'success'; // 'success' ou 'danger'
 $cliente = [];
 $modo_edicao = false;
 
@@ -20,6 +21,7 @@ function e($valor) {
     return htmlspecialchars((string) ($valor ?? ''), ENT_QUOTES, 'UTF-8');
 }
 
+// Carrega dados do cliente se um ID válido for passado via GET
 if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     $id = (int) $_GET['id'];
 
@@ -35,30 +37,34 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     }
 }
 
+// Processamento do Formulário (POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = !empty($_POST['id']) ? (int) $_POST['id'] : null;
 
-    $nome = trim($_POST['nome'] ?? '');
-    $cnpj = trim($_POST['cnpj'] ?? '');
-    $contato = trim($_POST['contato'] ?? '');
-    $telefone = trim($_POST['telefone'] ?? '');
-    $email = trim($_POST['email'] ?? '');
+    $nome       = trim($_POST['nome'] ?? '');
+    $cnpj       = trim($_POST['cnpj'] ?? '');
+    $contato    = trim($_POST['contato'] ?? '');
+    $telefone   = trim($_POST['telefone'] ?? '');
+    $email      = filter_var(trim($_POST['email'] ?? ''), FILTER_VALIDATE_EMAIL);
     $observacao = trim($_POST['observacao'] ?? '');
 
+    // Mantém o estado preenchido temporariamente caso ocorra erro de validação
     $cliente = [
         'id' => $id,
         'nome' => $nome,
         'cnpj' => $cnpj,
         'contato' => $contato,
         'telefone' => $telefone,
-        'email' => $email,
+        'email' => $_POST['email'] ?? '',
         'observacao' => $observacao
     ];
 
-    if ($nome === '' || $cnpj === '' || $contato === '' || $telefone === '' || $email === '') {
-        $mensagem = 'Preencha todos os campos obrigatórios.';
+    if ($nome === '' || $cnpj === '' || $contato === '' || $telefone === '' || !$email) {
+        $mensagem = !$email && !empty($_POST['email']) ? 'Por favor, insira um e-mail válido.' : 'Preencha todos os campos obrigatórios.';
+        $tipo_mensagem = 'danger';
         $modo_edicao = !empty($id);
     } else {
+        // Verifica duplicidade de CNPJ
         if ($id) {
             $stmtVerifica = $conexao->prepare('SELECT id FROM clientes WHERE cnpj = ? AND id != ?');
             $stmtVerifica->bind_param('si', $cnpj, $id);
@@ -72,62 +78,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($resultadoVerifica->num_rows > 0) {
             $mensagem = 'Já existe um cliente cadastrado com esse CNPJ.';
+            $tipo_mensagem = 'danger';
             $modo_edicao = !empty($id);
         } elseif ($id) {
-            $sql = "UPDATE clientes SET
-                        nome = ?,
-                        cnpj = ?,
-                        contato = ?,
-                        telefone = ?,
-                        email = ?,
-                        observacao = ?
-                    WHERE id = ?";
-
+            // Executa o UPDATE
+            $sql = "UPDATE clientes SET nome = ?, cnpj = ?, contato = ?, telefone = ?, email = ?, observacao = ? WHERE id = ?";
             $stmt = $conexao->prepare($sql);
             $stmt->bind_param('ssssssi', $nome, $cnpj, $contato, $telefone, $email, $observacao, $id);
 
             if ($stmt->execute()) {
-                $mensagem = 'Cliente atualizado com sucesso!';
-                registrarLog($conexao, 'Editou cliente', $id, 'Cliente: ' . $nome);
-                $modo_edicao = true;
+                // Redireciona para evitar reenvio de formulário com F5
+                header('Location: cadastro_clientes.php?msg=atualizado');
+                exit;
             } else {
                 $mensagem = 'Erro ao atualizar cliente: ' . $stmt->error;
+                $tipo_mensagem = 'danger';
             }
         } else {
-            $sql = "INSERT INTO clientes (
-                        nome,
-                        cnpj,
-                        contato,
-                        telefone,
-                        email,
-                        observacao
-                    ) VALUES (?, ?, ?, ?, ?, ?)";
-
+            // Executa o INSERT
+            $sql = "INSERT INTO clientes (nome, cnpj, contato, telefone, email, observacao) VALUES (?, ?, ?, ?, ?, ?)";
             $stmt = $conexao->prepare($sql);
             $stmt->bind_param('ssssss', $nome, $cnpj, $contato, $telefone, $email, $observacao);
 
             if ($stmt->execute()) {
-                $mensagem = 'Cliente cadastrado com sucesso!';
                 registrarLog($conexao, 'Cadastrou cliente', $stmt->insert_id, 'Cliente: ' . $nome);
-                $cliente = [];
-                $modo_edicao = false;
+                header('Location: cadastro_clientes.php?msg=cadastrado');
+                exit;
             } else {
                 $mensagem = 'Erro ao cadastrar cliente: ' . $stmt->error;
+                $tipo_mensagem = 'danger';
             }
         }
     }
 }
 
+// Captura mensagens vindas do redirecionamento de sucesso
+if (isset($_GET['msg'])) {
+    if ($_GET['msg'] === 'cadastrado') {
+        $mensagem = 'Cliente cadastrado com sucesso!';
+        $tipo_mensagem = 'success';
+    } elseif ($_GET['msg'] === 'atualizado') {
+        $mensagem = 'Cliente atualizado com sucesso!';
+        $tipo_mensagem = 'success';
+    }
+}
+
+// Busca a lista atualizada de clientes
 $clientes = [];
-
 $resultadoClientes = $conexao->query('SELECT * FROM clientes ORDER BY nome ASC');
-
 if ($resultadoClientes) {
     while ($linha = $resultadoClientes->fetch_assoc()) {
         $clientes[] = $linha;
     }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -141,6 +144,12 @@ if ($resultadoClientes) {
     <div class="login-box cadastro-box">
 
         <h1><?= $modo_edicao ? 'Editar Cliente' : 'Cadastro de Clientes'; ?></h1>
+
+        <?php if (!empty($mensagem)): ?>
+            <div class="alert alert-<?= $tipo_mensagem; ?> mensagem-alerta">
+                <?= e($mensagem); ?>
+            </div>
+        <?php endif; ?>
 
         <form method="POST">
             <input type="hidden" name="id" value="<?= e($cliente['id'] ?? ''); ?>">
@@ -172,7 +181,7 @@ if ($resultadoClientes) {
 
             <div class="input-group">
                 <label>Observação</label>
-                <textarea name="observacao"><?= e($cliente['observacao'] ?? ''); ?></textarea>
+                <textarea name="observacao" rows="3"><?= e($cliente['observacao'] ?? ''); ?></textarea>
             </div>
 
             <button type="submit" class="btn-login">
@@ -180,11 +189,9 @@ if ($resultadoClientes) {
             </button>
         </form>
 
-        <button type="button" class="btn-voltar"
-            onclick="window.location.href='pages/dashboard.php'">
+        <button type="button" class="btn-voltar" onclick="window.location.href='pages/dashboard.php'">
             Voltar
         </button>
-
 
         <?php if (!empty($clientes)): ?>
             <hr>
@@ -212,9 +219,9 @@ if ($resultadoClientes) {
                             <td><?= e($item['email'] ?? ''); ?></td>
                             <td>
                                 <button type="button" class="btn-editar"
-    onclick="window.location.href='cadastro_clientes.php?id=<?= e($item['id']); ?>'">
-    Editar
-</button>
+                                        onclick="window.location.href='cadastro_clientes.php?id=<?= e($item['id']); ?>'">
+                                    Editar
+                                </button>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -225,9 +232,19 @@ if ($resultadoClientes) {
     </div>
 </div>
 
-<?php if (!empty($mensagem)): ?>
-<script>alert("<?= addslashes($mensagem); ?>");</script>
-<?php endif; ?>
+<script>
+// Fade out automático para alertas de sucesso/erro após 4 segundos
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function () {
+        const alerta = document.querySelector('.mensagem-alerta');
+        if (alerta) {
+            alerta.style.transition = "opacity 0.5s ease";
+            alerta.style.opacity = 0;
+            setTimeout(() => alerta.remove(), 500);
+        }
+    }, 4000);
+});
+</script>
 
 </body>
 </html>

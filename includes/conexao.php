@@ -1,14 +1,21 @@
 <?php
+// includes/conexao.php
 
 $host = "localhost";
 $usuario = "root";
-$senha = "";
+$senha = ""; 
 $banco = "controle_estoque";
 
-$conexao = new mysqli($host, $usuario, $senha, $banco);
+// Força o PHP a nos mostrar o erro real se a conexão falhar
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-if ($conexao->connect_error) {
-    die("Erro de conexão: " . $conexao->connect_error);
+try {
+    $conexao = new mysqli($host, $usuario, $senha, $banco);
+    $conexao->set_charset("utf8mb4");
+} catch (Exception $e) {
+    // Se der erro, ele vai cuspir o motivo real na tela para nós
+    die("<div style='color:red; font-family:sans-serif; padding:20px;'>
+            <strong>Erro Crítico de Conexão:</strong> " . $e->getMessage() . "
+         </div>");
 }
-
 ?>

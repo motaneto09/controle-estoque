@@ -1,7 +1,8 @@
 <?php
+// cadastro_ativo.php
 
 include 'includes/auth.php';
-include 'includes/conexao.php';
+include 'includes/conexao.php'; // Usa o objeto $conexao configurado previamente
 include 'includes/log.php';
 
 $perfil = $_SESSION['usuario_perfil'] ?? '';
@@ -17,15 +18,8 @@ $filtro_descricao = $_GET['descricao'] ?? '';
 $filtro_categoria = $_GET['categoria'] ?? '';
 
 $categorias = [
-    'Notebook',
-    'Desktop',
-    'Monitor',
-    'Infraestrutura',
-    'Network',
-    'Armazenamento',
-    'Impressora',
-    'Disco',
-    'Memoria'
+    'Notebook', 'Desktop', 'Monitor', 'Infraestrutura', 
+    'Network', 'Armazenamento', 'Impressora', 'Disco', 'Memoria'
 ];
 
 function e($valor) {
@@ -36,16 +30,13 @@ function selecionado($valorAtual, $valorOption) {
     return ((string) ($valorAtual ?? '') === (string) $valorOption) ? 'selected' : '';
 }
 
+// Otimização no carregamento de clientes: trazendo apenas a coluna necessária
 $clientes = [];
-
 $sqlClientes = "SELECT nome FROM clientes ORDER BY nome ASC";
-
 $resultadoClientes = $conexao->query($sqlClientes);
 
 if ($resultadoClientes) {
-
     while ($linhaCliente = $resultadoClientes->fetch_assoc()) {
-
         $clientes[] = $linhaCliente;
     }
 }
@@ -86,9 +77,6 @@ function limparCamposPorCategoria(array &$dados) {
     if (!in_array($dados['categoria'], ['Infraestrutura', 'Network', 'Armazenamento'], true)) {
         $dados['tipo_equipamento'] = '';
     }
-
-    // ADICIONE AQUI
-    
 }
 
 function dadosPost() {
@@ -101,7 +89,6 @@ function dadosPost() {
     ];
 
     $dados = [];
-
     foreach ($camposTexto as $campo) {
         $dados[$campo] = trim($_POST[$campo] ?? '');
     }
@@ -112,25 +99,25 @@ function dadosPost() {
     $dados['quantidade'] = ($_POST['quantidade'] ?? '') !== '' ? (int) $_POST['quantidade'] : 1;
 
     limparCamposPorCategoria($dados);
-
     return $dados;
 }
 
+// Carregamento inicial do registro para Visualização/Edição
 if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     $id = (int) $_GET['id'];
-
     $stmt = $conexao->prepare('SELECT * FROM ativos WHERE id = ?');
     $stmt->bind_param('i', $id);
-    $stmt->execute();
-
-    $resultado = $stmt->get_result();
-
-    if ($resultado->num_rows > 0) {
-        $ativo = $resultado->fetch_assoc();
-        $modo_edicao = true;
+    if ($stmt->execute()) {
+        $resultado = $stmt->get_result();
+        if ($resultado->num_rows > 0) {
+            $ativo = $resultado->fetch_assoc();
+            $modo_edicao = true;
+        }
     }
+    $stmt->close();
 }
 
+// Processamento do Formulário
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($modo_visualizar) {
         $mensagem = 'Você não tem permissão para salvar alterações.';
@@ -141,61 +128,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $filtro_descricao = $_POST['filtro_descricao'] ?? '';
         $filtro_categoria = $_POST['filtro_categoria'] ?? '';
 
-if (
-    $dados['categoria'] === 'Disco' ||
-    $dados['categoria'] === 'Memoria'
-) {
+        // Unificação de lógicas e verificação de Service Tag duplicada
+        if ($dados['categoria'] === 'Disco' || $dados['categoria'] === 'Memoria') {
+            $dados['status'] = 'Estoque';
+            $dados['cliente'] = '';
+            $dados['nni'] = '';
+            $resultadoVerifica = false; // Insumos soltos não validam Service Tag global obrigatória
+        } else {
+            if ($dados['id']) {
+                $stmtVerifica = $conexao->prepare('SELECT id FROM ativos WHERE service_tag = ? AND id != ?');
+                $stmtVerifica->bind_param('si', $dados['service_tag'], $dados['id']);
+            } else {
+                $stmtVerifica = $conexao->prepare('SELECT id FROM ativos WHERE service_tag = ?');
+                $stmtVerifica->bind_param('s', $dados['service_tag']);
+            }
+            $stmtVerifica->execute();
+            $resultadoVerifica = $stmtVerifica->get_result();
+        }
 
-    $dados['status'] = 'Estoque';
-    $dados['cliente'] = '';
-    $dados['nni'] = '';
-}
-
-if (
-    $dados['categoria'] === 'Disco' ||
-    $dados['categoria'] === 'Memoria'
-) {
-
-    $resultadoVerifica = false;
-
-} else {
-
-    if ($dados['id']) {
-
-        $stmtVerifica = $conexao->prepare(
-            'SELECT id FROM ativos WHERE service_tag = ? AND id != ?'
-        );
-
-        $stmtVerifica->bind_param(
-            'si',
-            $dados['service_tag'],
-            $dados['id']
-        );
-
-    } else {
-
-        $stmtVerifica = $conexao->prepare(
-            'SELECT id FROM ativos WHERE service_tag = ?'
-        );
-
-        $stmtVerifica->bind_param(
-            's',
-            $dados['service_tag']
-        );
-    }
-
-    $stmtVerifica->execute();
-    $resultadoVerifica = $stmtVerifica->get_result();
-}
-
-        if (
-    $resultadoVerifica &&
-    $resultadoVerifica->num_rows > 0
-) {
+        if ($resultadoVerifica && $resultadoVerifica->num_rows > 0) {
             $mensagem = 'Já existe um ativo com essa Service Tag.';
             $ativo = $dados;
-        } elseif ($dados['id']) {
-            $sql = "UPDATE ativos SET
+            $stmtVerifica->close();
+        } else {
+            if ($resultadoVerifica) {
+                $stmtVerifica->close();
+            }
+
+            if ($dados['id']) {
+                // UPDATE OTIMIZADO COM PREPARED STATEMENT TOTAL
+                $sql = "UPDATE ativos SET
                         categoria = ?, tipo_equipamento = ?, descricao = ?, service_tag = ?, status = ?,
                         cliente = ?, nni = ?, modelo = ?, processador = ?, quantidade_cpu = ?,
                         memoria_ram = ?, quantidade_nic = ?, tipo_nic = ?, discos_ssd = ?, discos_nvme = ?,
@@ -204,136 +166,67 @@ if (
                         memoria_frequencia = ?, memoria_aplicacao = ?, quantidade = ?, observacao = ?
                         WHERE id = ?";
 
-            $stmt = $conexao->prepare($sql);
+                $stmt = $conexao->prepare($sql);
+                $stmt->bind_param(
+                    'sssssssssisissssssssssssssisi',
+                    $dados['categoria'], $dados['tipo_equipamento'], $dados['descricao'], $dados['service_tag'], $dados['status'],
+                    $dados['cliente'], $dados['nni'], $dados['modelo'], $dados['processador'], $dados['quantidade_cpu'],
+                    $dados['memoria_ram'], $dados['quantidade_nic'], $dados['tipo_nic'], $dados['discos_ssd'], $dados['discos_nvme'],
+                    $dados['discos_sas'], $dados['discos_nlsas'], $dados['discos_sata'], $dados['disco_modelo'], $dados['disco_tipo'],
+                    $dados['disco_tamanho'], $dados['disco_velocidade'], $dados['memoria_tipo'], $dados['memoria_capacidade'],
+                    $dados['memoria_frequencia'], $dados['memoria_aplicacao'], $dados['quantidade'], $dados['observacao'],
+                    $dados['id']
+                );
 
-            
+                if ($stmt->execute()) {
+                    registrarLog($conexao, 'Editou ativo', $dados['id'], 'Service Tag: ' . $dados['service_tag']);
+                    header('Location: consulta_ativos.php?msg=atualizado&service_tag=' . urlencode($filtro_service_tag) . '&descricao=' . urlencode($filtro_descricao) . '&categoria=' . urlencode($filtro_categoria));
+                    exit;
+                } else {
+                    $mensagem = 'Erro ao atualizar ativo: ' . $stmt->error;
+                    $ativo = $dados;
+                }
+                $stmt->close();
+            } else {
+                // INSERT OTIMIZADO COM PREPARED STATEMENT TOTAL
+                $sql = "INSERT INTO ativos (
+                            categoria, tipo_equipamento, descricao, service_tag, status,
+                            cliente, nni, modelo, processador, quantidade_cpu,
+                            memoria_ram, quantity_nic, tipo_nic, discos_ssd, discos_nvme,
+                            discos_sas, discos_nlsas, discos_sata, disco_modelo, disco_tipo,
+                            disco_tamanho, disco_velocidade, memoria_tipo, memoria_capacidade,
+                            memoria_frequencia, memoria_aplicacao, quantidade, observacao
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-$stmt->bind_param(
-    'sssssssssisissssssssssssssisi',
-    $dados['categoria'],
-    $dados['tipo_equipamento'],
-    $dados['descricao'],
-    $dados['service_tag'],
-    $dados['status'],
-    $dados['cliente'],
-    $dados['nni'],
-    $dados['modelo'],
-    $dados['processador'],
-    $dados['quantidade_cpu'],
-    $dados['memoria_ram'],
-    $dados['quantidade_nic'],
-    $dados['tipo_nic'],
-    $dados['discos_ssd'],
-    $dados['discos_nvme'],
-    $dados['discos_sas'],
-    $dados['discos_nlsas'],
-    $dados['discos_sata'],
-    $dados['disco_modelo'],
-    $dados['disco_tipo'],
-    $dados['disco_tamanho'],
-    $dados['disco_velocidade'],
-    $dados['memoria_tipo'],
-    $dados['memoria_capacidade'],
-    $dados['memoria_frequencia'],
-    $dados['memoria_aplicacao'],
-    $dados['quantidade'],
-    $dados['observacao'],
-    $dados['id']
-);
+                $stmt = $conexao->prepare($sql);
+                $stmt->bind_param(
+                    'sssssssssisissssssssssssssis',
+                    $dados['categoria'], $dados['tipo_equipamento'], $dados['descricao'], $dados['service_tag'], $dados['status'],
+                    $dados['cliente'], $dados['nni'], $dados['modelo'], $dados['processador'], $dados['quantidade_cpu'],
+                    $dados['memoria_ram'], $dados['quantidade_nic'], $dados['tipo_nic'], $dados['discos_ssd'], $dados['discos_nvme'],
+                    $dados['discos_sas'], $dados['discos_nlsas'], $dados['discos_sata'], $dados['disco_modelo'], $dados['disco_tipo'],
+                    $dados['disco_tamanho'], $dados['disco_velocidade'], $dados['memoria_tipo'], $dados['memoria_capacidade'],
+                    $dados['memoria_frequencia'], $dados['memoria_aplicacao'], $dados['quantidade'], $dados['observacao']
+                );
 
-            if ($stmt->execute()) {
-
-    registrarLog(
-        $conexao,
-        'Editou ativo',
-        $dados['id'],
-        'Service Tag: ' . $dados['service_tag']
-    );
-
-    header(
-    'Location: consulta_ativos.php?msg=atualizado'
-    . '&service_tag=' . urlencode($filtro_service_tag)
-    . '&descricao=' . urlencode($filtro_descricao)
-    . '&categoria=' . urlencode($filtro_categoria)
-);
-exit;
-}
-            else {
-                $mensagem = 'Erro ao atualizar ativo: ' . $stmt->error;
-                $ativo = $dados;
-            }
-        } else {
-            $sql = "INSERT INTO ativos (
-    categoria, tipo_equipamento, descricao, service_tag, status,
-    cliente, nni, modelo, processador, quantidade_cpu,
-    memoria_ram, quantidade_nic, tipo_nic, discos_ssd, discos_nvme,
-    discos_sas, discos_nlsas, discos_sata, disco_modelo, disco_tipo,
-    disco_tamanho, disco_velocidade, memoria_tipo, memoria_capacidade,
-    memoria_frequencia, memoria_aplicacao, quantidade, observacao
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-            $stmt = $conexao->prepare($sql);
-            $stmt->bind_param(
-    'sssssssssisissssssssssssssis',
-    $dados['categoria'],
-    $dados['tipo_equipamento'],
-    $dados['descricao'],
-    $dados['service_tag'],
-    $dados['status'],
-    $dados['cliente'],
-    $dados['nni'],
-    $dados['modelo'],
-    $dados['processador'],
-    $dados['quantidade_cpu'],
-    $dados['memoria_ram'],
-    $dados['quantidade_nic'],
-    $dados['tipo_nic'],
-    $dados['discos_ssd'],
-    $dados['discos_nvme'],
-    $dados['discos_sas'],
-    $dados['discos_nlsas'],
-    $dados['discos_sata'],
-    $dados['disco_modelo'],
-    $dados['disco_tipo'],
-    $dados['disco_tamanho'],
-    $dados['disco_velocidade'],
-    $dados['memoria_tipo'],
-    $dados['memoria_capacidade'],
-    $dados['memoria_frequencia'],
-    $dados['memoria_aplicacao'],
-    $dados['quantidade'],
-    $dados['observacao']
-);
-
-            if ($stmt->execute()) {
-
-    registrarLog(
-        $conexao,
-        'Cadastrou ativo',
-        $stmt->insert_id,
-        'Service Tag: ' . $dados['service_tag']
-    );
-
-    header(
-    'Location: consulta_ativos.php?msg=cadastrado'
-    . '&service_tag=' . urlencode($filtro_service_tag)
-    . '&descricao=' . urlencode($filtro_descricao)
-    . '&categoria=' . urlencode($filtro_categoria)
-);
-exit;
-}
-            else {
-                $mensagem = 'Erro ao cadastrar ativo: ' . $stmt->error;
-                $ativo = $dados;
+                if ($stmt->execute()) {
+                    registrarLog($conexao, 'Cadastrou ativo', $stmt->insert_id, 'Service Tag: ' . $dados['service_tag']);
+                    header('Location: consulta_ativos.php?msg=cadastrado&service_tag=' . urlencode($filtro_service_tag) . '&descricao=' . urlencode($filtro_descricao) . '&categoria=' . urlencode($filtro_categoria));
+                    exit;
+                } else {
+                    $mensagem = 'Erro ao cadastrar ativo: ' . $stmt->error;
+                    $ativo = $dados;
+                }
+                $stmt->close();
             }
         }
     }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <meta charset="UTF-8">
     <title>Cadastro Ativos - Controle de Estoque</title>
     <?php include 'includes/head.php'; ?>
 </head>
@@ -341,38 +234,16 @@ exit;
 
 <div class="login-container">
     <div class="login-box cadastro-box">
-
-        <h1>
-<?php
-if ($modo_visualizar) {
-    echo 'Visualizar Ativo';
-} elseif ($modo_edicao) {
-    echo 'Editar Ativo';
-} else {
-    echo 'Cadastro de Ativos';
-}
-?>
-</h1>
+        <h1><?= $modo_visualizar ? 'Visualizar Ativo' : ($modo_edicao ? 'Editar Ativo' : 'Cadastro de Ativos'); ?></h1>
 
         <form method="POST">
-
-    <input type="hidden"
-           name="filtro_service_tag"
-           value="<?= e($filtro_service_tag); ?>">
-
-    <input type="hidden"
-           name="filtro_descricao"
-           value="<?= e($filtro_descricao); ?>">
-
-    <input type="hidden"
-           name="filtro_categoria"
-           value="<?= e($filtro_categoria); ?>">
-
-
+            <input type="hidden" name="filtro_service_tag" value="<?= e($filtro_service_tag); ?>">
+            <input type="hidden" name="filtro_descricao" value="<?= e($filtro_descricao); ?>">
+            <input type="hidden" name="filtro_categoria" value="<?= e($filtro_categoria); ?>">
             <input type="hidden" name="id" value="<?= e($ativo['id'] ?? ''); ?>">
 
             <div class="input-group">
-                <label>Categoria</label>
+                <label for="categoria">Categoria</label>
                 <select name="categoria" id="categoria" required>
                     <option value="">Selecione</option>
                     <?php foreach ($categorias as $cat): ?>
@@ -382,7 +253,7 @@ if ($modo_visualizar) {
             </div>
 
             <div class="input-group" id="grupo-tipo-equipamento">
-                <label>Tipo Equipamento</label>
+                <label for="tipo_equipamento">Tipo Equipamento</label>
                 <select name="tipo_equipamento" id="tipo_equipamento">
                     <option value="">Selecione</option>
                 </select>
@@ -394,16 +265,12 @@ if ($modo_visualizar) {
             </div>
 
             <div class="input-group">
-    <label>Service Tag / Serial</label>
-    <input
-        type="text"
-        id="service_tag"
-        name="service_tag"
-        value="<?= e($ativo['service_tag'] ?? ''); ?>">
-</div>
+                <label>Service Tag / Serial</label>
+                <input type="text" id="service_tag" name="service_tag" value="<?= e($ativo['service_tag'] ?? ''); ?>">
+            </div>
 
             <div class="input-group">
-                <label>Status</label>
+                <label for="status">Status</label>
                 <select name="status" id="status" required>
                     <option value="">Selecione</option>
                     <option value="Estoque" <?= selecionado($ativo['status'] ?? '', 'Estoque'); ?>>Estoque</option>
@@ -415,22 +282,13 @@ if ($modo_visualizar) {
                 <div class="input-group">
                     <label>Cliente</label>
                     <select name="cliente">
-
-    <option value="">Selecione o cliente</option>
-
-    <?php foreach ($clientes as $clienteItem): ?>
-
-        <option
-            value="<?= e($clienteItem['nome']); ?>"
-            <?= selecionado($ativo['cliente'] ?? '', $clienteItem['nome']); ?>>
-
-            <?= e($clienteItem['nome']); ?>
-
-        </option>
-
-    <?php endforeach; ?>
-
-</select>
+                        <option value="">Selecione o cliente</option>
+                        <?php foreach ($clientes as $clienteItem): ?>
+                            <option value="<?= e($clienteItem['nome']); ?>" <?= selecionado($ativo['cliente'] ?? '', $clienteItem['nome']); ?>>
+                                <?= e($clienteItem['nome']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <div class="input-group">
                     <label>NNI</label>
@@ -440,57 +298,46 @@ if ($modo_visualizar) {
 
             <div id="detalhes-tecnicos" style="display:none;">
                 <h2>Detalhes Técnicos</h2>
-
                 <div class="input-group">
                     <label>Modelo</label>
                     <input type="text" name="modelo" value="<?= e($ativo['modelo'] ?? ''); ?>">
                 </div>
-
                 <div class="input-group campo-servidor">
                     <label>Processador</label>
                     <input type="text" name="processador" value="<?= e($ativo['processador'] ?? ''); ?>">
                 </div>
-
                 <div class="input-group campo-servidor">
                     <label>Quantidade CPU</label>
                     <input type="number" name="quantidade_cpu" value="<?= e($ativo['quantidade_cpu'] ?? ''); ?>">
                 </div>
-
                 <div class="input-group campo-servidor">
                     <label>Memória RAM</label>
                     <input type="text" name="memoria_ram" value="<?= e($ativo['memoria_ram'] ?? ''); ?>">
                 </div>
-
                 <div class="input-group campo-servidor">
                     <label>Quantidade NIC</label>
                     <input type="number" name="quantidade_nic" value="<?= e($ativo['quantidade_nic'] ?? ''); ?>">
                 </div>
-
                 <div class="input-group campo-servidor">
                     <label>Tipo NIC</label>
                     <input type="text" name="tipo_nic" value="<?= e($ativo['tipo_nic'] ?? ''); ?>">
                 </div>
-
                 <div class="input-group">
                     <label>Discos SSD</label>
                     <input type="text" name="discos_ssd" value="<?= e($ativo['discos_ssd'] ?? ''); ?>">
                 </div>
-
                 <div class="input-group">
                     <label>Discos NVMe</label>
                     <input type="text" name="discos_nvme" value="<?= e($ativo['discos_nvme'] ?? ''); ?>">
                 </div>
-
                 <div class="input-group">
                     <label>Discos SAS</label>
                     <input type="text" name="discos_sas" value="<?= e($ativo['discos_sas'] ?? ''); ?>">
                 </div>
-
                 <div class="input-group">
                     <label>Discos NL-SAS</label>
                     <input type="text" name="discos_nlsas" value="<?= e($ativo['discos_nlsas'] ?? ''); ?>">
                 </div>
-
                 <div class="input-group">
                     <label>Discos SATA</label>
                     <input type="text" name="discos_sata" value="<?= e($ativo['discos_sata'] ?? ''); ?>">
@@ -499,14 +346,10 @@ if ($modo_visualizar) {
 
             <div id="detalhes-disco" style="display:none;">
                 <h2>Detalhes do Disco</h2>
-
-                
-
                 <div class="input-group">
                     <label>Modelo do Disco</label>
                     <input type="text" name="disco_modelo" value="<?= e($ativo['disco_modelo'] ?? ''); ?>">
                 </div>
-
                 <div class="input-group">
                     <label>Tipo do Disco</label>
                     <select name="disco_tipo">
@@ -518,12 +361,10 @@ if ($modo_visualizar) {
                         <option value="SATA" <?= selecionado($ativo['disco_tipo'] ?? '', 'SATA'); ?>>SATA</option>
                     </select>
                 </div>
-
                 <div class="input-group">
                     <label>Tamanho</label>
                     <input type="text" name="disco_tamanho" placeholder="Ex: 600GB, 1.2TB, 4TB" value="<?= e($ativo['disco_tamanho'] ?? ''); ?>">
                 </div>
-
                 <div class="input-group">
                     <label>Velocidade</label>
                     <input type="text" name="disco_velocidade" placeholder="Ex: 7.2K, 10K, 15K, 12Gbps" value="<?= e($ativo['disco_velocidade'] ?? ''); ?>">
@@ -532,9 +373,6 @@ if ($modo_visualizar) {
 
             <div id="detalhes-memoria" style="display:none;">
                 <h2>Detalhes da Memória</h2>
-
-                
-
                 <div class="input-group">
                     <label>Tipo da Memória</label>
                     <select name="memoria_tipo">
@@ -548,17 +386,14 @@ if ($modo_visualizar) {
                         <option value="LRDIMM" <?= selecionado($ativo['memoria_tipo'] ?? '', 'LRDIMM'); ?>>LRDIMM</option>
                     </select>
                 </div>
-
                 <div class="input-group">
                     <label>Capacidade</label>
                     <input type="text" name="memoria_capacidade" placeholder="Ex: 8GB, 16GB, 32GB, 64GB" value="<?= e($ativo['memoria_capacidade'] ?? ''); ?>">
                 </div>
-
                 <div class="input-group">
                     <label>Frequência</label>
                     <input type="text" name="memoria_frequencia" placeholder="Ex: 1600MHz, 2400MHz, 2666MHz, 3200MHz" value="<?= e($ativo['memoria_frequencia'] ?? ''); ?>">
                 </div>
-
                 <div class="input-group">
                     <label>Aplicação</label>
                     <select name="memoria_aplicacao">
@@ -571,13 +406,9 @@ if ($modo_visualizar) {
             </div>
 
             <div id="grupo-quantidade" class="input-group" style="display:none;">
-    <label>Quantidade</label>
-    <input
-        type="number"
-        name="quantidade"
-        min="1"
-        value="<?= e($ativo['quantidade'] ?? 1); ?>">
-</div>
+                <label>Quantidade</label>
+                <input type="number" name="quantidade" min="1" value="<?= e($ativo['quantidade'] ?? 1); ?>">
+            </div>
 
             <div class="input-group">
                 <label>Observação</label>
@@ -589,19 +420,9 @@ if ($modo_visualizar) {
             <?php endif; ?>
         </form>
 
-        <?php if ($modo_visualizar): ?>
-    <button type="button" class="btn-voltar"
-    onclick="window.location.href='/controle-estoque/consulta_ativos.php'">
-    Fechar
-</button>
-
-<?php else: ?>
-   <button type="button" class="btn-voltar"
-    onclick="window.location.href='/controle-estoque/consulta_ativos.php'">
-    Voltar
-    </button>
-    
-<?php endif; ?>
+        <button type="button" class="btn-voltar" onclick="window.location.href='consulta_ativos.php'">
+            <?= $modo_visualizar ? 'Fechar' : 'Voltar'; ?>
+        </button>
     </div>
 </div>
 
@@ -618,10 +439,8 @@ const dadosLocacao = document.getElementById('dados-locacao');
 const detalhesTecnicos = document.getElementById('detalhes-tecnicos');
 const detalhesDisco = document.getElementById('detalhes-disco');
 const detalhesMemoria = document.getElementById('detalhes-memoria');
-const grupoQuantidade =
-    document.getElementById('grupo-quantidade');
-    const campoServiceTag =
-    document.getElementById('service_tag');
+const grupoQuantidade = document.getElementById('grupo-quantidade');
+const campoServiceTag = document.getElementById('service_tag');
 const tipoAtual = "<?= addslashes($ativo['tipo_equipamento'] ?? ''); ?>";
 
 const tiposPorCategoria = {
@@ -648,60 +467,30 @@ function carregarTipos() {
 }
 
 function atualizarTela() {
-
     const categoria = categoriaSelect.value;
     const tipo = tipoEquipamentoSelect.value;
 
-    const ehServidor =
-        categoria === 'Infraestrutura' &&
-        tipo === 'Servidor';
+    const ehServidor = categoria === 'Infraestrutura' && tipo === 'Servidor';
+    const ehStorageOuTape = categoria === 'Armazenamento' && ['Storage', 'Tape Library'].includes(tipo);
+    const grupoStatus = statusSelect.closest('.input-group');
 
-    const ehStorageOuTape =
-        categoria === 'Armazenamento' &&
-        ['Storage', 'Tape Library'].includes(tipo);
-
-        const grupoStatus = statusSelect.closest('.input-group');
-
-if (
-    categoria === 'Disco' ||
-    categoria === 'Memoria'
-) {
-
-    grupoStatus.style.display = 'none';
-    statusSelect.value = 'Estoque';
-
-    if (campoServiceTag) {
-    campoServiceTag.required = false;
-}
-
-} else {
-
-    grupoStatus.style.display = 'block';
-
-    if (campoServiceTag) {
-    campoServiceTag.required = true;
-}
-}
+    if (categoria === 'Disco' || categoria === 'Memoria') {
+        grupoStatus.style.display = 'none';
+        statusSelect.value = 'Estoque';
+        if (campoServiceTag) campoServiceTag.required = false;
+    } else {
+        grupoStatus.style.display = 'block';
+        if (campoServiceTag) campoServiceTag.required = true;
+    }
 
     mostrar(dadosLocacao, statusSelect.value === 'Alugado');
-
-    mostrar(
-        detalhesTecnicos,
-        ehServidor || ehStorageOuTape
-    );
-
+    mostrar(detalhesTecnicos, ehServidor || ehStorageOuTape);
     mostrar(detalhesDisco, categoria === 'Disco');
-
     mostrar(detalhesMemoria, categoria === 'Memoria');
-
-   grupoQuantidade.style.display = 'block';
+    grupoQuantidade.style.display = 'block';
 
     document.querySelectorAll('.campo-servidor').forEach(function(campo) {
-
-        campo.style.display =
-            ehServidor
-            ? 'block'
-            : 'none';
+        campo.style.display = ehServidor ? 'block' : 'none';
     });
 }
 
@@ -713,34 +502,21 @@ categoriaSelect.addEventListener('change', function() {
 tipoEquipamentoSelect.addEventListener('change', atualizarTela);
 statusSelect.addEventListener('change', atualizarTela);
 
+// Inicialização da View
 carregarTipos();
 atualizarTela();
-
 </script>
 
 <script>
-
 <?php if ($modo_visualizar): ?>
-
 document.addEventListener('DOMContentLoaded', function() {
-
-    document.querySelectorAll(
-        'input, select, textarea, button'
-    ).forEach(function(campo) {
-
-        if (
-            campo.type !== 'hidden' &&
-            !campo.classList.contains('btn-voltar')
-        ) {
+    document.querySelectorAll('input, select, textarea, button').forEach(function(campo) {
+        if (campo.type !== 'hidden' && !campo.classList.contains('btn-voltar')) {
             campo.setAttribute('disabled', 'disabled');
         }
-
     });
-
 });
-
 <?php endif; ?>
-
 </script>
 
 </body>
