@@ -63,11 +63,17 @@ $resultado = $conexao->query($sql);
         Filtrar
     </button>
 
+    <button type="button" class="btn-voltar"
+        onclick="window.location.href='logs.php'">
+        Limpar
+    </button>
+
     <button type="button" class="btn-login btn-small"
         onclick="exportarLogs()">
         Exportar
     </button>
-
+    
+    
 </div>
 
 
