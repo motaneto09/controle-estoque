@@ -1,103 +1,95 @@
 <?php
+// login.php
+include 'includes/conexao.php';
 session_start();
 
-include 'includes/conexao.php';
+// Se já estiver logado, joga direto para o dashboard
+if (isset($_SESSION['usuario_id'])) {
+    header("Location: pages/dashboard.php");
+    exit;
+}
+
+$erro = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $usuario = trim($_POST['usuario']);
+    $senha = trim($_POST['senha']);
 
-    $email = $_POST['email'];
-    $senha = md5($_POST['senha']);
+    if (!empty($usuario) && !empty($senha)) {
+        // Buscando a senha hash correspondente ao usuário
+        $sql = "SELECT id, senha FROM usuarios WHERE usuario = ?";
+        if ($stmt = $conn->prepare($sql)) {
+            $stmt->bind_param("s", $usuario);
+            $stmt->execute();
+            $stmt->store_result();
 
-    $sql = "SELECT * FROM usuarios 
-            WHERE email = '$email' 
-            AND senha = '$senha'";
+            if ($stmt->num_rows == 1) {
+                $stmt->bind_result($id, $senha_hash);
+                $stmt->fetch();
 
-    $resultado = $conexao->query($sql);
+                // Verificação segura com password_verify
+                if (password_verify($senha, $senha_hash)) {
+                    // Proteção contra Session Fixation
+                    session_regenerate_id(true);
+                    
+                    $_SESSION['usuario_id'] = $id;
+                    $_SESSION['usuario'] = $usuario;
 
-    if ($resultado->num_rows > 0) {
+                    // Registrar log de sucesso (Opcional, dependendo da sua tabela de logs)
+                    $ip = $_SERVER['REMOTE_ADDR'];
+                    $log_sql = "INSERT INTO logs (usuario, acao, ip) VALUES (?, 'Login efetuado com sucesso', ?)";
+                    if ($log_stmt = $conn->prepare($log_sql)) {
+                        $log_stmt->bind_param("ss", $usuario, $ip);
+                        $log_stmt->execute();
+                        $log_stmt->close();
+                    }
 
-        $usuario = $resultado->fetch_assoc();
-
-        $_SESSION['usuario_id'] = $usuario['id'];
-        $_SESSION['usuario_nome'] = $usuario['nome'];
-        $_SESSION['usuario_perfil'] = $usuario['perfil'];
-        $_SESSION['is_root'] = $usuario['is_root'];
-
-        header("Location: pages/dashboard.php");
-        exit;
-
+                    header("Location: pages/dashboard.php");
+                    exit;
+                } else {
+                    $erro = "Usuário ou senha incorretos.";
+                }
+            } else {
+                $erro = "Usuário ou senha incorretos.";
+            }
+            $stmt->close();
+        }
     } else {
-
-        $erro = "Usuário ou senha inválidos.";
-
+        $erro = "Por favor, preencha todos os campos.";
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-
-    <title>Login - Controle de Estoque</title>
-
-    <?php include 'includes/head.php'; ?>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="shortcut icon" href="assets/img/favicon.png" type="image/x-icon">
 </head>
+<body class="login-body">
+    <div class="login-container">
+        <div class="login-box">
+            <img src="assets/img/logo.png" alt="Logo" class="login-logo">
+            <h2>Acessar o Sistema</h2>
+            
+            <?php if (!empty($erro)): ?>
+                <div class="alert alert-danger"><?php echo htmlspecialchars($erro); ?></div>
+            <?php endif; ?>
 
-<body>
-
-<div class="login-container">
-
-    <div class="login-box">
-        <img src="assets/img/logo.png" class="logo-login" alt="Logo">
-
-        <h1>Controle de Estoque</h1>
-
-        <form method="POST">
-
-    <div class="input-group icon-input">
-
-    <i class="bi bi-person-fill"></i>
-
-    <input type="text"
-           name="email"
-           placeholder="Usuário"
-           required>
-
-    </div>
-
-        <div class="input-group icon-input">
-
-    <i class="bi bi-lock-fill"></i>
-
-    <input type="password"
-           name="senha"
-           placeholder="Senha"
-           required>
-
+            <form action="login.php" method="POST">
+                <div class="input-group">
+                    <label die for="usuario">Usuário</label>
+                    <input type="text" id="usuario" name="usuario" required autocomplete="username">
+                </div>
+                <div class="input-group">
+                    <label die for="senha">Senha</label>
+                    <input type="password" id="senha" name="senha" required autocomplete="current-senha">
+                </div>
+                <button type="submit" class="btn-login">Entrar</button>
+            </form>
         </div>
-
-            <button type="submit" class="btn-login">
-                Entrar
-            </button>
-
-        </form>
-        <div class="footer-text">
-           
-           <br>
-           © 2026 Desenvolvido por deoclecio_mota@iland.com.br
-                <br> Todos os direitos reservados
-        </div>
-
-        <?php
-        if(isset($erro)){
-            echo "<p class='erro'>$erro</p>";
-        }
-        ?>
-
     </div>
-
-</div>
-
 </body>
 </html>
