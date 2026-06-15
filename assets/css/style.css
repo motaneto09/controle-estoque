@@ -745,3 +745,98 @@ button {
     border-radius: 6px;
     border: 1px solid #ccc;
 }
+
+/* ==========================================================================
+   PADRONIZAÇÃO UNIVERSAL DE BOTÕES (UI/UX)
+   ========================================================================== */
+
+/* Classe Base - Define que TODOS os botões terão o mesmo tamanho e comportamento */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Altura e espaçamento controlados (nunca ficam gigantes) */
+  min-width: 140px;
+  height: 42px;
+  padding: 0 24px;
+  
+  /* Tipografia */
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  
+  /* Bordas e Cantos Modernos */
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  
+  /* Transições suaves ao passar o mouse */
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+
+/* Efeito tátil de clique rápido */
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* 1. BOTÃO PRINCIPAL (Vermelho Corporativo) - Usado para Salvar, Cadastrar, Enviar */
+.btn-primary {
+  background-color: #800020; /* O Borgonha/Vinho padrão do seu CSS */
+  color: #ffffff;
+}
+.btn-primary:hover {
+  background-color: #4a0012; /* Tom mais escuro do seu CSS para o Hover */
+}
+
+/* 2. BOTÃO SECUNDÁRIO (Neutro/Outline) - Usado para Cancelar, Voltar, Limpar */
+.btn-secondary {
+  background-color: #ffffff;
+  border-color: #dcd1c9;
+  color: #5c534c;
+}
+.btn-secondary:hover {
+  background-color: #f5efeb;
+  border-color: #800020;
+  color: #800020;
+}
+
+/* 3. BOTÃO DE ALERTA/PERIGO - Usado para Excluir, Deletar, Inativar */
+.btn-danger {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+.btn-danger:hover {
+  background-color: #991b1b;
+}
+
+/* 4. BOTÃO DE EXPORTAÇÃO (PDF) - O formato que corrigimos hoje */
+.btn-pdf {
+  background-color: #25D366; /* Mantendo o padrão verde de sucesso/whatsapp do seu CSS */
+  color: #ffffff;
+}
+.btn-pdf:hover {
+  background-color: #1ebd58;
+}
+
+/* CONTEXTO DE FORMULÁRIO: Evita que o grid estique os botões */
+.form-actions {
+  grid-column: span 2; /* Ocupa a linha toda do formulário */
+  display: flex;
+  justify-content: flex-end; /* Alinha os botões à direita (padrão profissional) */
+  gap: 12px; /* Dá um espaçamento elegante entre o Salvar e o Cancelar */
+  margin-top: 10px;
+}
+
+/* Responsividade para telas de celulares */
+@media (max-width: 768px) {
+  .form-actions {
+    grid-column: span 1;
+    flex-direction: column; /* Em celulares, os botões empilham */
+  }
+  .btn {
+    width: 100%; /* Ocupa a largura total apenas no celular */
+  }
+}
