@@ -1,5 +1,9 @@
     <?php
+    // 1º: Valida a autenticação do usuário
     include '../includes/auth.php';
+
+    // 2º: Carrega a conexão com o banco e a constante URL_BASE
+    include '../includes/conexao.php';
 
     $perfil = $_SESSION['usuario_perfil'] ?? '';
 
@@ -7,59 +11,59 @@
         header('Location: dashboard.php');
         exit;
     }
-    ?>
+?>
 
-    <!DOCTYPE html>
-    <html lang="pt-br">
-    <head>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
 
-        <title>Exportar Ativos - Controle de Estoque</title>
+    <title>Exportar Ativos - Controle de Estoque</title>
 
-        <?php include '../includes/head.php'; ?>
+    <?php include '../includes/head.php'; ?>
 
-    </head>
-    <body>
+</head>
+<body>
 
-    <div class="dashboard-container">
+<div class="dashboard-container">
 
-        <?php include '../includes/sidebar.php'; ?>
+    <?php include '../includes/sidebar.php'; ?>
 
-        <main class="dashboard-content">
+    <main class="dashboard-content">
 
-            <h1>Exportar Ativos</h1>
+        <h1>Exportar Ativos</h1>
 
-            <p>Escolha o formato de exportação:</p>
+        <p>Escolha o formato de exportação:</p>
 
-            <div class="export-buttons">
-                <a href="exportar_pdf.php" class="btn-export btn-pdf" target="_blank">Exportar PDF</a>
-            </div>
+        <div class="export-buttons">
+            <a href="exportar_pdf.php" class="btn-export btn-pdf" target="_blank">Exportar PDF</a>
+        </div>
 
-        </main>
+    </main>
 
-    </div>
+</div>
 
-    <script>
+<script>
 
-    const toggle = document.getElementById('sidebarToggle');
-    const sidebar = document.querySelector('.sidebar');
+const toggle = document.getElementById('sidebarToggle');
+const sidebar = document.querySelector('.sidebar');
 
-    if(localStorage.getItem('sidebar') === 'collapsed'){
-        sidebar.classList.add('sidebar-collapsed');
+if(localStorage.getItem('sidebar') === 'collapsed'){
+    sidebar.classList.add('sidebar-collapsed');
+}
+
+toggle.addEventListener('click', () => {
+
+    sidebar.classList.toggle('sidebar-collapsed');
+
+    if(sidebar.classList.contains('sidebar-collapsed')){
+        localStorage.setItem('sidebar', 'collapsed');
+    } else {
+        localStorage.setItem('sidebar', 'expanded');
     }
 
-    toggle.addEventListener('click', () => {
+});
 
-        sidebar.classList.toggle('sidebar-collapsed');
+</script>
 
-        if(sidebar.classList.contains('sidebar-collapsed')){
-            localStorage.setItem('sidebar', 'collapsed');
-        } else {
-            localStorage.setItem('sidebar', 'expanded');
-        }
-
-    });
-
-    </script>
-
-    </body>
-    </html>
+</body>
+</html>
