@@ -1,6 +1,9 @@
 <?php
 
+// 1º: Garante que apenas usuários logados acessem o gerador de PDF
 include '../includes/auth.php';
+
+// 2º: Carrega o banco de dados e a constante URL_BASE para o script funcionar
 include '../includes/conexao.php';
 
 require '../vendor/autoload.php';
