@@ -22,5 +22,6 @@ try {
 // =========================================================================
 // DEFINE A URL BASE DINAMICAMENTE PARA DESENVOLVIMENTO OU SERVIDOR IIS
 // =========================================================================
-define('URL_BASE', '/controle-estoque/');
+define('URL_BASE', '/');
+
 ?>
