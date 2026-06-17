@@ -22,9 +22,5 @@ try {
 // =========================================================================
 // DEFINE A URL BASE DINAMICAMENTE PARA DESENVOLVIMENTO OU SERVIDOR IIS
 // =========================================================================
-if ($_SERVER['HTTP_HOST'] == 'localhost' && strpos($_SERVER['REQUEST_URI'], '/controle-estoque') !== false) {
-    define('URL_BASE', 'http://localhost/controle-estoque/');
-} else {
-    define('URL_BASE', 'http://localhost/');
-}
+define('URL_BASE', '/controle-estoque/');
 ?>
