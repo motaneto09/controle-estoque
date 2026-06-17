@@ -68,7 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="pt-br">
 <head>
     <title>Login - Controle de Estoque</title>
-    <?php include 'includes/head.php'; ?>
+    <?php include __DIR__ . '/includes/head.php'; ?>
 </head>
 <body>
 
