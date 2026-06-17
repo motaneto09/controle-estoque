@@ -1,7 +1,8 @@
 <?php
 session_start();
 
-include 'includes/conexao.php';
+require_once __DIR__ . '/includes/conexao.php';
+
 
 $erro = "";
 
@@ -68,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="pt-br">
 <head>
     <title>Login - Controle de Estoque</title>
-    <?php include __DIR__ . '/includes/head.php'; ?>
+    <?php require_once __DIR__ . '/includes/head.php'; ?>
 </head>
 <body>
 
