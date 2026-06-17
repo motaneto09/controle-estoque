@@ -2,7 +2,7 @@
 
 session_start();
 
-include 'includes/conexao.php';
+include __DIR__ . '/includes/conexao.php';
 
 $mensagem = '';
 
@@ -98,13 +98,15 @@ $total_colunas = $pode_visualizar ? 6 : 5;
 <html lang="pt-br">
 <head>
     <title>Consultar Ativos - Controle de Estoque</title>
-    <?php include 'includes/head.php'; ?>
+    <?php include __DIR__ . '/includes/head.php'; ?>
+
 </head>
 <body>
 
 <div class="dashboard-container">
 
     <?php include 'includes/sidebar.php'; ?>
+
         
     <main class="dashboard-content">
 
