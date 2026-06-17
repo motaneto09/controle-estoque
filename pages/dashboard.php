@@ -102,12 +102,12 @@ if ($res_sem_nni) {
         </div>
 
         <div class="stats-grid">
-            <a href="/controle-estoque/consulta_ativos.php?status=estoque" class="stat-card">
+            <a href="/consulta_ativos.php?status=estoque" class="stat-card">
                 <span class="stat-number"><?= $total_em_estoque; ?></span>
                 <span class="stat-title">Em Estoque</span>
             </a>
 
-            <a href="/controle-estoque/consulta_ativos.php?status=Alugado" class="stat-card">
+            <a href="/consulta_ativos.php?status=Alugado" class="stat-card">
                 <span class="stat-number"><?= $total_alugados; ?></span>
                 <span class="stat-title">Alugados</span>
             </a>
@@ -116,12 +116,12 @@ if ($res_sem_nni) {
         <section class="pendencias-box">
             <h2>Alertas de Pendências</h2>
             <div class="pendencias-grid">
-                <a href="/controle-estoque/consulta_ativos.php?pendencia=cliente" class="pendencia-card">
+                <a href="/consulta_ativos.php?pendencia=cliente" class="pendencia-card">
                     <strong><?= $alugado_sem_cliente; ?></strong>
                     <span>Alugados sem Cliente</span>
                 </a>
 
-                <a href="/controle-estoque/consulta_ativos.php?pendencia=nni" class="pendencia-card">
+                <a href="/consulta_ativos.php?pendencia=nni" class="pendencia-card">
                     <strong><?= $alugado_sem_nni; ?></strong>
                     <span>Alugados sem NNI</span>
                 </a>
@@ -132,7 +132,7 @@ if ($res_sem_nni) {
             <h2>Resumo por Categoria</h2>
             <div class="categorias-grid">
                 <?php foreach ($resumo_categorias as $cat => $total): ?>
-                    <a href="/controle-estoque/consulta_ativos.php?categoria=<?= urlencode($cat); ?>" class="categoria-card">
+                    <a href="/consulta_ativos.php?categoria=<?= urlencode($cat); ?>" class="categoria-card">
                         <strong><?= $total; ?></strong>
                         <span><?= htmlspecialchars($cat, ENT_QUOTES, 'UTF-8'); ?></span>
                     </a>
