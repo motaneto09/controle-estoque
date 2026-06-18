@@ -5,10 +5,13 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Se o usuário NÃO está logado, manda para a tela de login de forma segura
+// Se o usuário NÃO está logado, manda para o login
 if (!isset($_SESSION['usuario_id'])) {
-    // Usamos o caminho relativo correto baseado em onde este arquivo está sendo chamado
-    header("Location: /controle-estoque/login.php");
+    // Se por acaso a conexao não foi incluída ainda, inclui agora
+    if (!defined('URL_BASE')) {
+        require_once __DIR__ . '/conexao.php';
+    }
+    header("Location: " . URL_BASE . "login.php");
     exit;
 }
 ?>

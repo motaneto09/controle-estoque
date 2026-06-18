@@ -13,15 +13,19 @@ try {
     $conexao = new mysqli($host, $usuario, $senha, $banco);
     $conexao->set_charset("utf8mb4");
 } catch (Exception $e) {
-    // Se der erro, ele vai cuspir o motivo real na tela para nós
-    die("<div style='color:red; font-family:sans-serif; padding:20px;'>
-            <strong>Erro Crítico de Conexão:</strong> " . $e->getMessage() . "
-         </div>");
+    die("<div style='color:red; font-family:sans-serif; padding:20px;'><strong>Erro Crítico de Conexão:</strong> " . $e->getMessage() . "</div>");
 }
 
 // =========================================================================
 // DEFINE A URL BASE DINAMICAMENTE PARA DESENVOLVIMENTO OU SERVIDOR IIS
 // =========================================================================
-define('URL_BASE', '/');
-
+if ($_SERVER['HTTP_HOST'] === 'localhost' || $_SERVER['SERVER_ADDR'] === '127.0.0.1') {
+    if (!defined('URL_BASE')) {
+        define('URL_BASE', '/controle-estoque/');
+    }
+} else {
+    if (!defined('URL_BASE')) {
+        define('URL_BASE', '/');
+    }
+}
 ?>

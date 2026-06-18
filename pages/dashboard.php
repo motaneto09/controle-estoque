@@ -7,10 +7,10 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // 2. PRIMEIRO importamos a conexão (isso faz o grifado vermelho sumir)
-include __DIR__ . '/../includes/conexao.php';
+require_once __DIR__ . '/../includes/conexao.php';
 
 // 3. SEGUNDO importamos a autenticação
-include __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 // 4. Ativa alertas na tela para sabermos se algo mais travar
 ini_set('display_errors', 1);
