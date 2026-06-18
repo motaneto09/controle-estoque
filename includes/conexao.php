@@ -1,31 +1,27 @@
 <?php
-// includes/conexao.php
+// Configuração de exibição de erros (mantém ativo para ajudar no deploy)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-$host = "localhost";
-$usuario = "root";
-$senha = ""; 
-$banco = "controle_estoque";
-
-// Força o PHP a nos mostrar o erro real se a conexão falhar
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-
-try {
-    $conexao = new mysqli($host, $usuario, $senha, $banco);
-    $conexao->set_charset("utf8mb4");
-} catch (Exception $e) {
-    die("<div style='color:red; font-family:sans-serif; padding:20px;'><strong>Erro Crítico de Conexão:</strong> " . $e->getMessage() . "</div>");
+// Definição direta da URL_BASE para o ambiente do IIS
+if (!defined('URL_BASE')) {
+    define('URL_BASE', '/');
 }
 
-// =========================================================================
-// DEFINE A URL BASE DINAMICAMENTE PARA DESENVOLVIMENTO OU SERVIDOR IIS
-// =========================================================================
-if ($_SERVER['HTTP_HOST'] === 'localhost' || $_SERVER['SERVER_ADDR'] === '127.0.0.1') {
-    if (!defined('URL_BASE')) {
-        define('URL_BASE', '/controle-estoque/');
-    }
-} else {
-    if (!defined('URL_BASE')) {
-        define('URL_BASE', '/');
-    }
+// Credenciais de conexão com o MariaDB do Servidor
+$host    = "localhost"; 
+$usuario = "root";  
+$senha   = ""; // Vazio, conforme validado no prompt
+$banco   = "controle_estoque";
+
+// Criação da conexão utilizando MySQLi
+$conexao = mysqli_connect($host, $usuario, $senha, $banco);
+
+// Verifica se houve falha na conexão
+if (!$conexao) {
+    die("<span style='color:red; font-weight:bold;'>Erro Crítico de Conexão:</span> " . mysqli_connect_error());
 }
-?>
+
+// Define o charset para evitar problemas com acentuação
+mysqli_set_charset($conexao, "utf8mb4");
